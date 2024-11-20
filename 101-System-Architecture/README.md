@@ -137,3 +137,105 @@ Bus 001 Device 003: ID 0461:554a Primax Electronics, Ltd HP 125 Wired Keyboard
 ```
 
 Обычно в стандартной системе Linux в любой момент времени имеется большой набор загруженных модулей (драйверов) ядра. Предпочтительным способом взаимодействия с ними является использование команд, предоставляемых пакетом `kmod`, который представляет собой набор инструментов для выполнения общих задач с модулями (драйверами) ядра Linux, таких как вставка, удаление, вывод списка, проверка свойств, разрешение зависимостей и псевдонимов. Например, команда `lsmod` показывает все загруженные в данный момент модули:
+
+```
+lsmod
+Module                  Size  Used by
+cifs                 1064960  0
+cifs_arc4              16384  1 cifs
+rdma_cm               131072  1 cifs
+iw_cm                  49152  1 rdma_cm
+ib_cm                 139264  1 rdma_cm
+ib_core               421888  4 rdma_cm,cifs,iw_cm,ib_cm
+cifs_md4               16384  1 cifs
+dns_resolver           16384  1 cifs
+fscache               376832  1 cifs
+netfs                  57344  1 fscache
+exfat                  86016  0
+sd_mod                 65536  0
+uas                    28672  0
+usb_storage            77824  1 uas
+tcp_diag               16384  0
+inet_diag              28672  1 tcp_diag
+xt_MASQUERADE          16384  3
+```
+
+Вывод команды lsmod делится на три столбца:
+
+`Модуль`  
+Имя модуля.  
+
+`Размер`  
+Объем оперативной памяти, занимаемой модулем, в байтах.  
+
+`Используется`  
+Зависимыми модулями.  
+
+Для правильной работы некоторых модулей (драйверов) требуются другие модули, как в случае с модулями для аудиоустройств:
+
+```
+lsmod | fgrep -i snd_hda_intel
+snd_hda_intel          57344  2
+snd_intel_dspcfg       28672  3 snd_hda_intel,snd_sof,snd_sof_intel_hda_common
+snd_hda_codec         180224  6 snd_hda_codec_generic,snd_hda_codec_hdmi,snd_hda_intel,snd_hda_codec_realtek,snd_soc_hdac_hda,snd_sof_intel_hda
+snd_hda_core          118784  9 snd_hda_codec_generic,snd_hda_codec_hdmi,snd_hda_intel,snd_hda_ext_core,snd_hda_codec,snd_hda_codec_realtek,snd_sof_intel_hda_common,snd_soc_hdac_hda,snd_sof_intel_hda
+snd_pcm               155648  11 snd_hda_codec_hdmi,snd_hda_intel,snd_hda_codec,soundwire_intel,snd_sof,snd_sof_intel_hda_common,snd_compress,snd_soc_core,snd_sof_utils,snd_hda_core,snd_pcm_dmaengine
+snd                   118784  18 snd_hda_codec_generic,snd_seq,snd_seq_device,snd_hda_codec_hdmi,snd_hwdep,snd_hda_intel,snd_hda_codec,snd_hda_codec_realtek,snd_sof,snd_timer,snd_compress,snd_soc_core,snd_pcm,snd_rawmidi
+```
+
+Третий столбец, `Used by`, показывает модули, которым для правильной работы требуется модуль из первого столбца. Многие модули звуковой архитектуры Linux, имеющие префикс `snd`, взаимозависимы. При поиске проблем во время диагностики системы может быть полезно выгрузить определенные загруженные в данный момент модули. Команда `modprobe` может использоваться как для загрузки, так и для выгрузки модулей ядра: для выгрузки модуля и связанных с ним модулей, если они не используются запущенным процессом, следует использовать команду `modprobe -r`. Например, для выгрузки модуля `snd-hda-intel` (модуль для аудиоустройства HDA Intel) и других модулей, связанных со звуковой системой:
+
+```
+sudo modprobe -r snd-hda-intel
+modprobe: FATAL: Module snd_hda_intel is in use.
+```
+
+Помимо загрузки и выгрузки модулей ядра во время работы системы, можно изменять параметры модуля во время загрузки ядра, что не так уж отличается от передачи опций командам. Каждый модуль принимает определенные параметры, но в большинстве случаев рекомендуются значения по умолчанию, и дополнительные параметры не нужны. Однако в некоторых случаях необходимо использовать параметры для изменения поведения модуля, чтобы он работал так, как ожидается.
+
+Используя имя модуля в качестве единственного аргумента, команда `modinfo` показывает описание, файл, автора, лицензию, идентификацию, зависимости и доступные параметры для данного модуля. Настраиваемые параметры для модуля можно сделать постоянными, включив их в файл `/etc/modprobe.conf` или в отдельные файлы с расширением `.conf` в каталоге `/etc/modprobe.d/`. Опция `-p` заставит команду `modinfo` отображать все доступные параметры и игнорировать остальную информацию:
+
+```
+sudo modinfo snd-hda-intel
+filename:       /lib/modules/6.1.79-un-def-alt1/kernel/sound/pci/hda/snd-hda-intel.ko
+description:    Intel HDA driver
+license:        GPL
+srcversion:     B62D924BD7C255E90C5AD17
+alias:          pci:v00001D17d00003288sv*sd*bc*sc*i*
+alias:          pci:v00001022d*sv*sd*bc04sc03i00*
+alias:          pci:v00001002d*sv*sd*bc04sc03i00*
+alias:          pci:v000015ADd00001977sv*sd*bc*sc*i*
+alias:          pci:v000017F3d00003010sv*sd*bc*sc*i*
+alias:          pci:v000013F6d00005011sv*sd*bc*sc*i*
+alias:          pci:v00001102d00000009sv*sd*bc*sc*i*
+alias:          pci:v00001102d00000012sv*sd*bc*sc*i*
+depends:        snd-hda-core,snd-hda-codec,snd,snd-intel-dspcfg,snd-pcm
+retpoline:      Y
+intree:         Y
+name:           snd_hda_intel
+vermagic:       6.1.79-un-def-alt1 SMP preempt mod_unload modversions 
+sig_id:         PKCS#7
+signer:         Build time autogenerated kernel key
+sig_key:        03:FA:FE:5E:2D:C4:A2:3D:E0:56:23:F2:FE:0D:67:32:08:9E:D6:57
+sig_hashalgo:   sha512
+signature:      96:7B:91:8A:BF:E5:C2:9A:AE:48:7A:5F:18:DC:C9:ED:02:51:09:49:
+parm:           index:Index value for Intel HD audio interface. (array of int)
+parm:           id:ID string for Intel HD audio interface. (array of charp)
+parm:           enable:Enable Intel HD audio interface. (array of bool)
+parm:           model:Use the given board model. (array of charp)
+parm:           position_fix:DMA pointer read method.(-1 = system default, 0 = auto, 1 = LPIB, 2 = POSBUF, 3 = VIACOMBO, 4 = COMBO, 5 = SKL+, 6 = FIFO). (array of int)
+parm:           bdl_pos_adj:BDL position adjustment offset. (array of int)
+parm:           probe_mask:Bitmask to probe codecs (default = -1). (array of int)
+parm:           probe_only:Only probing and no codec initialization. (array of int)
+parm:           jackpoll_ms:Ms between polling for jack events (default = 0, using unsol events only) (array of int)
+parm:           single_cmd:Use single command to communicate with codecs (for debugging only). (bint)
+parm:           enable_msi:Enable Message Signaled Interrupt (MSI) (bint)
+parm:           patch:Patch file for Intel HD audio interface. (array of charp)
+parm:           beep_mode:Select HDA Beep registration mode (0=off, 1=on) (default=1). (array of bool)
+parm:           dmic_detect:Allow DSP driver selection (bypass this driver) (0=off, 1=on) (default=1); deprecated, use snd-intel-dspcfg.dsp_driver option instead (bool)
+parm:           ctl_dev_id:Use control device identifier (based on codec address). (bool)
+parm:           power_save:Automatic power-saving timeout (in second, 0 = disable). (xint)
+parm:           pm_blacklist:Enable power-management denylist (bool)
+parm:           power_save_controller:Reset controller in power save mode. (bool)
+parm:           align_buffer_size:Force buffer and period sizes to be multiple of 128 bytes. (bint)
+parm:           snoop:Enable/disable snooping (bint)
+```
