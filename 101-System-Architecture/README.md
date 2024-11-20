@@ -81,7 +81,7 @@ lspci -s 02:00.0 -k
 	Kernel driver in use: rtw89_8852be
 ```
 
-Command `lsusb` is similar to `lspci`, but lists USB information exclusively:
+Команда `lsusb` похожа на `lspci`, но выводит исключительно информацию о USB:
 
 ```
 lsusb
@@ -91,3 +91,49 @@ Bus 001 Device 004: ID 0bda:b85c Realtek Semiconductor Corp. Bluetooth Radio
 Bus 001 Device 002: ID 0d62:12ec Darfon Electronics Corp. HP 125 USB Optical Mouse
 Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
 ```
+
+Команда `lsusb` показывает доступные каналы USB и подключенные к ним устройства. Как и в случае с `lspci`, опция `-v` отображает более подробный вывод. Конкретное устройство можно выбрать для проверки, указав его идентификатор опции `-d`:
+
+```
+lsusb -v -d 0bda:b85c
+
+Bus 001 Device 004: ID 0bda:b85c Realtek Semiconductor Corp. Bluetooth Radio
+Couldn't open device, some information will be missing
+Device Descriptor:
+  bLength                18
+  bDescriptorType         1
+  bcdUSB               1.00
+  bDeviceClass          224 Wireless
+  bDeviceSubClass         1 Radio Frequency
+  bDeviceProtocol         1 Bluetooth
+  bMaxPacketSize0        64
+  idVendor           0x0bda Realtek Semiconductor Corp.
+  idProduct          0xb85c 
+  bcdDevice            0.00
+  iManufacturer           1 Realtek
+  iProduct                2 Bluetooth Radio
+  iSerial                 3 00e04c000001
+  bNumConfigurations      1
+```
+
+С опцией -t команда lsusb отображает текущие сопоставления USB-устройств в виде иерархического дерева:
+
+```
+lsusb -t
+/:  Bus 02.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/9p, 20000M/x2
+/:  Bus 01.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/16p, 480M
+    |__ Port 1: Dev 2, If 0, Class=Human Interface Device, Driver=usbhid, 1.5M
+    |__ Port 2: Dev 3, If 0, Class=Human Interface Device, Driver=usbhid, 1.5M
+    |__ Port 2: Dev 3, If 1, Class=Human Interface Device, Driver=usbhid, 1.5M
+    |__ Port 14: Dev 4, If 0, Class=Wireless, Driver=btusb, 12M
+    |__ Port 14: Dev 4, If 1, Class=Wireless, Driver=btusb, 12M
+```
+
+Возможно, не все устройства имеют соответствующие модули, связанные с ними. Связь с некоторыми устройствами может осуществляться приложением напрямую, без посредничества, предоставляемого модулем. _Тем не менее, в выводе, предоставленном lsusb -t, есть важная информация. Когда существует соответствующий модуль, его имя появляется в конце строки для устройства, как в Driver=btusb._ Класс устройства определяет общую категорию, например, Устройство интерфейса пользователя, Беспроводная связь, Специфический класс поставщика, Массовое хранилище и т. д. Чтобы проверить, какое устройство использует модуль btusb, представленный в предыдущем листинге, номера `Bus` и `Dev` должны быть указаны в опции `-s` команды lsusb:
+
+```
+lsusb -s 01:3
+Bus 001 Device 003: ID 0461:554a Primax Electronics, Ltd HP 125 Wired Keyboard
+```
+
+Обычно в стандартной системе Linux в любой момент времени имеется большой набор загруженных модулей ядра. Предпочтительным способом взаимодействия с ними является использование команд, предоставляемых пакетом `kmod`, который представляет собой набор инструментов для выполнения общих задач с модулями ядра Linux, таких как вставка, удаление, вывод списка, проверка свойств, разрешение зависимостей и псевдонимов. Например, команда `lsmod` показывает все загруженные в данный момент модули:
