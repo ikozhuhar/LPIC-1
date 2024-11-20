@@ -239,3 +239,7 @@ parm:           power_save_controller:Reset controller in power save mode. (bool
 parm:           align_buffer_size:Force buffer and period sizes to be multiple of 128 bytes. (bint)
 parm:           snoop:Enable/disable snooping (bint)
 ```
+
+В примере вывода показаны все параметры, доступные для модуля nouveau, модуля ядра, предоставленного Nouveau Project в качестве альтернативы фирменным драйверам для видеокарт NVIDIA. Например, опция modeset позволяет контролировать, будут ли установлены разрешение и глубина экрана в пространстве ядра, а не в пространстве пользователя. Добавление опции nouveau modeset=0 в файл /etc/modprobe.d/nouveau.conf отключит функцию ядра modeset.
+
+Если модуль вызывает проблемы, можно использовать файл /etc/modprobe.d/blacklist.conf для блокировки загрузки модуля. Например, чтобы предотвратить автоматическую загрузку модуля nouveau, необходимо добавить строку blacklist nouveau в файл /etc/modprobe.d/blacklist.conf. Это действие требуется, когда установлен фирменный модуль nvidia, а модуль по умолчанию nouveau следует отложить.
