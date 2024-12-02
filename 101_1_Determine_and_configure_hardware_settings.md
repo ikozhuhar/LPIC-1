@@ -95,8 +95,12 @@ sudo modinfo snd-hda-intel
 
 
 
+Дополнительная информация
 
-
+1. [Диагностика оборудования и системы](https://www.altlinux.org/%D0%94%D0%B8%D0%B0%D0%B3%D0%BD%D0%BE%D1%81%D1%82%D0%B8%D0%BA%D0%B0_%D0%BE%D0%B1%D0%BE%D1%80%D1%83%D0%B4%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F_%D0%B8_%D1%81%D0%B8%D1%81%D1%82%D0%B5%D0%BC%D1%8B)
+2. [16 команд для проверки аппаратной части в Linux](https://rus-linux.net/MyLDP/admin/commands.html)
+3. [9 команд для проверки информации о CPU в Linux](https://habr.com/ru/companies/otus/articles/581796/)
+4. [Информация о железе в Linux](https://serverspace.ru/support/help/informacziya-o-zheleze-v-linux/?utm_source=google.com&utm_medium=organic&utm_campaign=google.com&utm_referrer=google.com)
 
 
 
