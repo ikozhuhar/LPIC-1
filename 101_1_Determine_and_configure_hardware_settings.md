@@ -44,6 +44,10 @@ lsusb -s 01:3
 Для правильной работы некоторых модулей (драйверов) требуются другие модули, как в случае с модулями для аудиоустройств `snd_hda_intel`:
 ```
 lsmod
+modinfo
+rmmod
+insmod
+modprobe
 lsmod | fgrep -i snd_hda_intel
 ```
 
